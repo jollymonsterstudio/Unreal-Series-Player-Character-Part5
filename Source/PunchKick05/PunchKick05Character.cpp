@@ -54,6 +54,16 @@ APunchKick05Character::APunchKick05Character()
 	{
 		MeleeFistAttackMontage = MeleeFistAttackMontageObject.Object;
 	}
+
+	// load the sound cue object
+	static ConstructorHelpers::FObjectFinder<USoundCue> PunchSoundCueObject(TEXT("SoundCue'/Game/TUTORIAL_RESOURCES/Audio/PunchSoundCue.PunchSoundCue'"));
+	if (PunchSoundCueObject.Succeeded())
+	{
+		PunchSoundCue = PunchSoundCueObject.Object;
+
+		PunchAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("PunchAudioComponent"));
+		PunchAudioComponent->SetupAttachment(RootComponent);
+	}
 	
 	LeftFistCollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("LeftFistCollisionBox"));
 	LeftFistCollisionBox->SetupAttachment(RootComponent);
@@ -82,6 +92,13 @@ void APunchKick05Character::BeginPlay()
 
 	LeftFistCollisionBox->OnComponentHit.AddDynamic(this, &APunchKick05Character::OnAttackHit);
 	RightFistCollisionBox->OnComponentHit.AddDynamic(this, &APunchKick05Character::OnAttackHit);
+
+	// make sure our audio variables are initialized
+	if (PunchSoundCue && PunchAudioComponent) {
+		// attach the sound cue to our audio component 
+		// NOTE: do not do this in the constructor as it will play the sound when the player spawns
+		PunchAudioComponent->SetSound(PunchSoundCue);
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -124,12 +141,12 @@ void APunchKick05Character::OnResetVR()
 
 void APunchKick05Character::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
 {
-		Jump();
+	Jump();
 }
 
 void APunchKick05Character::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
 {
-		StopJumping();
+	StopJumping();
 }
 
 void APunchKick05Character::TurnAtRate(float Rate)
@@ -212,6 +229,21 @@ void APunchKick05Character::OnAttackHit(UPrimitiveComponent* HitComponent, AActo
 {
 	Log(ELogLevel::WARNING, __FUNCTION__);
 	Log(ELogLevel::WARNING, Hit.GetActor()->GetName());
+
+	// check to make sure the audio component is initialized and we are not already playing a sound
+	if (PunchAudioComponent && !PunchAudioComponent->IsPlaying())
+	{
+		// activate the sound if it has not been already
+		if (!PunchAudioComponent->IsActive()) 
+		{
+			PunchAudioComponent->Activate(true);
+		}
+		// default pitch value 1.0f
+		// modify the pitch to create variance by grabbing a random float between 1.0 and 1.3
+		PunchAudioComponent->SetPitchMultiplier(FMath::RandRange(1.0f, 1.3f));
+		// play the sound
+		PunchAudioComponent->Play(0.f);
+	}
 }
 
 void APunchKick05Character::Log(ELogLevel LogLevel, FString Message)
