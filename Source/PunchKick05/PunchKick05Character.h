@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 
 #include "Components/BoxComponent.h"
+#include "Components/AudioComponent.h"
 
 #include "PunchKick05Character.generated.h"
 
@@ -47,12 +48,15 @@ class APunchKick05Character : public ACharacter
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* MeleeFistAttackMontage;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Audio, meta = (AllowPrivateAccess = "true"))
+		class USoundCue* PunchSoundCue;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Collision, meta = (AllowPrivateAccess = "true"))
 		class UBoxComponent* LeftFistCollisionBox;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Collision, meta = (AllowPrivateAccess = "true"))
 		class UBoxComponent* RightFistCollisionBox;
-
+	
 public:
 	APunchKick05Character();
 
@@ -129,6 +133,8 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 private:
+	UAudioComponent* PunchAudioComponent;
+
 	/**
 	* Log - prints a message to all the log outputs with a specific color
 	* @param LogLevel {@see ELogLevel} affects color of log
